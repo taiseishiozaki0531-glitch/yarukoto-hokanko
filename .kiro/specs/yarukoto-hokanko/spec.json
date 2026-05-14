@@ -1,0 +1,22 @@
+{
+  "feature_name": "yarukoto-hokanko",
+  "created_at": "2026-05-14T01:02:04Z",
+  "updated_at": "2026-05-14T01:53:56Z",
+  "language": "ja",
+  "phase": "design-generated",
+  "approvals": {
+    "requirements": {
+      "generated": true,
+      "approved": true
+    },
+    "design": {
+      "generated": true,
+      "approved": false
+    },
+    "tasks": {
+      "generated": false,
+      "approved": false
+    }
+  },
+  "ready_for_implementation": false
+}
