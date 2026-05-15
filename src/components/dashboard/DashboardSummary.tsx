@@ -30,7 +30,7 @@ export function DashboardSummary({ data }: DashboardSummaryProps) {
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {summaryItems.map((item) => (
           <div
-            className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm"
+            className="min-w-0 rounded-lg border border-slate-200 bg-white p-4 shadow-sm"
             key={item.valueKey}
           >
             <p className="text-sm font-medium text-slate-500">{item.label}</p>
@@ -41,14 +41,14 @@ export function DashboardSummary({ data }: DashboardSummaryProps) {
         ))}
       </div>
 
-      <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+      <div className="min-w-0 rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
         <h2 className="text-base font-semibold text-slate-950">
           ステータス別件数
         </h2>
         <div className="mt-4 grid gap-3 sm:grid-cols-5">
           {STATUSES.map((status) => (
             <div
-              className="rounded-md bg-slate-50 px-3 py-3"
+              className="min-w-0 rounded-md bg-slate-50 px-3 py-3"
               key={status}
             >
               <p className="text-xs font-medium text-slate-500">{status}</p>

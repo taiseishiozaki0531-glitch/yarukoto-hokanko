@@ -13,15 +13,15 @@ export default async function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      <section className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="space-y-2">
+      <section className="flex min-w-0 flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="min-w-0 space-y-2">
           <p className="text-sm font-medium text-slate-500">ダッシュボード</p>
           <h1 className="text-2xl font-semibold text-slate-950">
             やることの状況
           </h1>
         </div>
         <Link
-          className="inline-flex min-h-10 items-center justify-center gap-2 rounded-md bg-slate-950 px-4 text-sm font-semibold text-white transition hover:bg-slate-800"
+          className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-md bg-slate-950 px-4 text-sm font-semibold text-white transition hover:bg-slate-800 sm:min-h-10 sm:w-auto"
           href="/items/new"
         >
           <Plus aria-hidden="true" size={18} />

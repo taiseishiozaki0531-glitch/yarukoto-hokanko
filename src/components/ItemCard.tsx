@@ -1,8 +1,14 @@
-import { ExternalLink, Eye, Pencil, Trash2 } from "lucide-react";
+import { ExternalLink, Eye, Pencil } from "lucide-react";
 import Link from "next/link";
 import { format } from "date-fns";
 
-import { calculateProgressPercent } from "@/lib/items/date-logic";
+import { DeleteItemButton } from "./DeleteItemButton";
+import { TodayToggleButton } from "./TodayToggleButton";
+import {
+  formatProgressText,
+  isDueWithinSevenDays,
+  isOverdueItem,
+} from "@/lib/items/date-logic";
 import type { Item } from "@/lib/items/types";
 
 interface ItemCardProps {
@@ -17,25 +23,33 @@ function formatDate(date: string | null): string {
   return format(new Date(`${date}T00:00:00`), "yyyy/MM/dd");
 }
 
-function formatProgress(item: Item): string | null {
-  const progressPercent = calculateProgressPercent(item);
+function getDeadlineState(item: Item): "overdue" | "upcoming" | null {
+  const today = new Date();
 
-  if (progressPercent === null) {
-    return null;
+  if (isOverdueItem(item, today)) {
+    return "overdue";
   }
 
-  if (item.amount_unit) {
-    return `${progressPercent}% (${item.current_amount}/${item.total_amount}${item.amount_unit})`;
+  if (isDueWithinSevenDays(item, today)) {
+    return "upcoming";
   }
 
-  return `${progressPercent}%`;
+  return null;
 }
 
 export function ItemCard({ item }: ItemCardProps) {
-  const progressText = formatProgress(item);
+  const progressText = formatProgressText(item);
+  const deadlineState = getDeadlineState(item);
+  const isOverdue = deadlineState === "overdue";
 
   return (
-    <article className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+    <article
+      className={`min-w-0 rounded-lg border p-4 shadow-sm ${
+        isOverdue
+          ? "border-rose-200 bg-rose-50/60"
+          : "border-slate-200 bg-white"
+      }`}
+    >
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0 space-y-2">
           <h2 className="break-words text-lg font-semibold text-slate-950">
@@ -56,7 +70,7 @@ export function ItemCard({ item }: ItemCardProps) {
 
         {item.url ? (
           <a
-            className="inline-flex min-h-9 items-center justify-center gap-2 rounded-md border border-slate-300 px-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+            className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-md border border-slate-300 px-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 sm:min-h-10 sm:w-auto"
             href={item.url}
             rel="noopener noreferrer"
             target="_blank"
@@ -75,45 +89,53 @@ export function ItemCard({ item }: ItemCardProps) {
           </p>
         </div>
 
-        <div className="grid gap-3 sm:grid-cols-2">
+        <div className={`grid gap-3 ${progressText ? "sm:grid-cols-2" : ""}`}>
           <div className="rounded-md bg-slate-50 px-3 py-3">
             <p className="text-xs font-medium text-slate-500">期限</p>
-            <p className="mt-1 text-sm font-semibold text-slate-800">
-              {formatDate(item.due_date)}
-            </p>
+            <div className="mt-1 flex flex-wrap items-center gap-2">
+              <p className="text-sm font-semibold text-slate-800">
+                {formatDate(item.due_date)}
+              </p>
+              {deadlineState === "overdue" ? (
+                <span className="rounded-full bg-rose-100 px-2 py-0.5 text-xs font-semibold text-rose-700">
+                  期限切れ
+                </span>
+              ) : null}
+              {deadlineState === "upcoming" ? (
+                <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-700">
+                  今週中
+                </span>
+              ) : null}
+            </div>
           </div>
-          <div className="rounded-md bg-slate-50 px-3 py-3">
-            <p className="text-xs font-medium text-slate-500">進捗率</p>
-            <p className="mt-1 text-sm font-semibold text-slate-800">
-              {progressText ?? "未設定"}
-            </p>
-          </div>
+          {progressText ? (
+            <div className="rounded-md bg-slate-50 px-3 py-3">
+              <p className="text-xs font-medium text-slate-500">進捗率</p>
+              <p className="mt-1 text-sm font-semibold text-slate-800">
+                {progressText}
+              </p>
+            </div>
+          ) : null}
         </div>
       </div>
 
-      <div className="mt-4 flex flex-col gap-2 border-t border-slate-200 pt-4 sm:flex-row sm:justify-end">
+      <div className="mt-4 grid grid-cols-1 gap-2 border-t border-slate-200 pt-4 sm:flex sm:flex-wrap sm:justify-end">
         <Link
-          className="inline-flex min-h-9 items-center justify-center gap-2 rounded-md border border-slate-300 px-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+          className="inline-flex min-h-11 items-center justify-center gap-2 rounded-md border border-slate-300 px-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 sm:min-h-10"
           href={`/items/${item.id}`}
         >
           <Eye aria-hidden="true" size={16} />
           詳細
         </Link>
         <Link
-          className="inline-flex min-h-9 items-center justify-center gap-2 rounded-md border border-slate-300 px-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+          className="inline-flex min-h-11 items-center justify-center gap-2 rounded-md border border-slate-300 px-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 sm:min-h-10"
           href={`/items/${item.id}/edit`}
         >
           <Pencil aria-hidden="true" size={16} />
           編集
         </Link>
-        <button
-          className="inline-flex min-h-9 items-center justify-center gap-2 rounded-md border border-slate-200 px-3 text-sm font-semibold text-slate-400"
-          disabled
-          type="button"
-        >
-          <Trash2 aria-hidden="true" size={16} />
-          削除
-        </button>
+        <TodayToggleButton item={item} />
+        <DeleteItemButton itemId={item.id} itemTitle={item.title} />
       </div>
     </article>
   );

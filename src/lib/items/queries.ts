@@ -1,6 +1,10 @@
 import { STATUSES } from "./constants";
-import { isDueWithinSevenDays, isOverdueItem } from "./date-logic";
-import type { DashboardData, Item, Status } from "./types";
+import {
+  isDueWithinSevenDays,
+  isOverdueItem,
+  isVisibleInTodayList,
+} from "./date-logic";
+import type { DashboardData, Item, ItemListFilter, Status } from "./types";
 import { requireUser } from "@/lib/supabase/auth";
 import { createClient } from "@/lib/supabase/server";
 
@@ -16,6 +20,17 @@ type ItemListQueryResult = {
   items: Item[];
   error?: string;
 };
+
+type ItemDetailQueryResult = {
+  item: Item | null;
+  error?: string;
+};
+
+function isLikelyUuid(value: string): boolean {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+    value,
+  );
+}
 
 function createEmptyStatusCounts(): Record<Status, number> {
   return STATUSES.reduce(
@@ -37,10 +52,6 @@ export function createEmptyDashboardData(): DashboardData {
     todayItems: [],
     upcomingItems: [],
   };
-}
-
-function isActiveItem(item: Pick<Item, "status">): boolean {
-  return item.status !== "完了" && item.status !== "やめた";
 }
 
 function sortByDueDate(items: Item[]): Item[] {
@@ -82,7 +93,7 @@ export function buildDashboardData(
     highPriorityCount: items.filter((item) => item.priority === "高").length,
     overdueCount: overdueItems.length,
     upcomingCount: upcomingItems.length,
-    todayItems: items.filter((item) => item.is_today && isActiveItem(item)),
+    todayItems: items.filter(isVisibleInTodayList),
     upcomingItems,
   };
 }
@@ -102,7 +113,7 @@ export async function getDashboardData(): Promise<DashboardQueryResult> {
     return {
       data: createEmptyDashboardData(),
       error:
-        "ダッシュボードのデータ取得に失敗しました。itemsテーブルとRLS設定を確認してください。",
+        "ダッシュボードのデータ取得に失敗しました。時間をおいて再読み込みしてください。",
     };
   }
 
@@ -111,14 +122,30 @@ export async function getDashboardData(): Promise<DashboardQueryResult> {
   };
 }
 
-export async function listItems(): Promise<ItemListQueryResult> {
+export async function listItems(
+  filter: ItemListFilter = {},
+): Promise<ItemListQueryResult> {
   const user = await requireUser();
   const supabase = await createClient();
 
-  const { data, error } = await supabase
+  let query = supabase
     .from("items")
     .select("*")
-    .eq("user_id", user.id)
+    .eq("user_id", user.id);
+
+  if (filter.category) {
+    query = query.eq("category", filter.category);
+  }
+
+  if (filter.status) {
+    query = query.eq("status", filter.status);
+  }
+
+  if (filter.priority) {
+    query = query.eq("priority", filter.priority);
+  }
+
+  const { data, error } = await query
     .order("created_at", { ascending: false })
     .limit(ITEM_LIST_LIMIT);
 
@@ -132,5 +159,43 @@ export async function listItems(): Promise<ItemListQueryResult> {
 
   return {
     items: (data ?? []) as Item[],
+  };
+}
+
+export async function getItemById(id: string): Promise<ItemDetailQueryResult> {
+  if (!isLikelyUuid(id)) {
+    return {
+      item: null,
+      error: "指定されたアイテムが見つかりません。",
+    };
+  }
+
+  const user = await requireUser();
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from("items")
+    .select("*")
+    .eq("id", id)
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  if (error) {
+    return {
+      item: null,
+      error:
+        "アイテム詳細の取得に失敗しました。時間をおいて再読み込みしてください。",
+    };
+  }
+
+  if (!data) {
+    return {
+      item: null,
+      error: "指定されたアイテムが見つかりません。",
+    };
+  }
+
+  return {
+    item: data as Item,
   };
 }

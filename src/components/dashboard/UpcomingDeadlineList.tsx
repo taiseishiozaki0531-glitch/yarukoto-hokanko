@@ -1,5 +1,6 @@
 import { format } from "date-fns";
 
+import { EmptyState } from "@/components/EmptyState";
 import type { Item } from "@/lib/items/types";
 
 interface UpcomingDeadlineListProps {
@@ -16,22 +17,26 @@ function formatDate(date: string | null): string {
 
 export function UpcomingDeadlineList({ items }: UpcomingDeadlineListProps) {
   return (
-    <section className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+    <section className="min-w-0 rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
       <h2 className="text-base font-semibold text-slate-950">今週中の期限</h2>
 
       {items.length === 0 ? (
-        <p className="mt-5 rounded-md bg-slate-50 px-4 py-5 text-sm text-slate-600">
-          今週中に期限が来るアイテムはありません。
-        </p>
+        <div className="mt-5">
+          <EmptyState
+            description="期限が近い未完了のアイテムがあると、ここに表示されます。"
+            title="今週中の期限はありません。"
+            variant="subtle"
+          />
+        </div>
       ) : (
         <ul className="mt-5 space-y-3">
           {items.map((item) => (
             <li
-              className="rounded-md border border-slate-200 px-4 py-3"
+              className="min-w-0 rounded-md border border-slate-200 px-4 py-3"
               key={item.id}
             >
               <div className="flex flex-wrap items-center gap-2">
-                <h3 className="min-w-0 flex-1 text-sm font-semibold text-slate-950">
+                <h3 className="min-w-0 flex-1 break-words text-sm font-semibold text-slate-950">
                   {item.title}
                 </h3>
                 <span className="rounded-full bg-amber-50 px-2 py-1 text-xs font-medium text-amber-700">
