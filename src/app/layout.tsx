@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 import { ThemeScript } from "@/components/ThemeScript";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 export const metadata: Metadata = {
   title: "やること保管庫",
@@ -18,7 +19,9 @@ export default function RootLayout({
       <body className="flex min-h-full flex-col">
         <ThemeScript />
         {children}
+        <SpeedInsights />
       </body>
     </html>
   );
 }
+
