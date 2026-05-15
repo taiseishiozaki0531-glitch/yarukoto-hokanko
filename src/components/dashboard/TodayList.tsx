@@ -1,3 +1,4 @@
+import { CompleteItemButton } from "@/components/CompleteItemButton";
 import { EmptyState } from "@/components/EmptyState";
 import { TodayToggleButton } from "@/components/TodayToggleButton";
 import type { Item } from "@/lib/items/types";
@@ -43,7 +44,8 @@ export function TodayList({ items }: TodayListProps) {
               <p className="mt-2 text-sm leading-6 text-slate-600">
                 {item.next_action}
               </p>
-              <div className="mt-3">
+              <div className="mt-3 grid grid-cols-1 gap-2 sm:flex sm:flex-wrap">
+                <CompleteItemButton item={item} />
                 <TodayToggleButton item={item} />
               </div>
             </li>

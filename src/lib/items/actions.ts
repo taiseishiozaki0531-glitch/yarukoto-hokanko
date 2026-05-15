@@ -164,6 +164,70 @@ export async function deleteItem(
   };
 }
 
+export async function completeItem(
+  _previousState: ActionResult,
+  formData: FormData,
+): Promise<ActionResult> {
+  const id = String(formData.get("id") ?? "");
+
+  if (!isLikelyUuid(id)) {
+    return {
+      ok: false,
+      error: "完了にできるやることが見つかりません。",
+    };
+  }
+
+  const user = await requireUser();
+  const supabase = await createClient();
+  const { data: currentItem, error: currentItemError } = await supabase
+    .from("items")
+    .select("id,status")
+    .eq("id", id)
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  if (currentItemError || !currentItem) {
+    return {
+      ok: false,
+      error: "完了にできるやることが見つかりません。",
+    };
+  }
+
+  if (isInactiveTodayStatus(currentItem.status)) {
+    return {
+      ok: false,
+      error: "完了またはやめた状態のやることは変更できません。",
+    };
+  }
+
+  const { data, error } = await supabase
+    .from("items")
+    .update({
+      status: "完了",
+      is_today: false,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", id)
+    .eq("user_id", user.id)
+    .select("id")
+    .maybeSingle();
+
+  if (error || !data) {
+    return {
+      ok: false,
+      error: "完了への更新に失敗しました。時間をおいて再試行してください。",
+    };
+  }
+
+  revalidatePath("/items");
+  revalidatePath(`/items/${id}`);
+  revalidatePath("/dashboard");
+
+  return {
+    ok: true,
+  };
+}
+
 export async function setTodayStatus(
   _previousState: ActionResult,
   formData: FormData,

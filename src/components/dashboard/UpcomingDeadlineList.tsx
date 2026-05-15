@@ -1,5 +1,6 @@
 import { format } from "date-fns";
 
+import { CompleteItemButton } from "@/components/CompleteItemButton";
 import { EmptyState } from "@/components/EmptyState";
 import type { Item } from "@/lib/items/types";
 
@@ -57,6 +58,9 @@ export function UpcomingDeadlineList({ items }: UpcomingDeadlineListProps) {
               <p className="mt-2 text-sm leading-6 text-slate-600">
                 {item.next_action}
               </p>
+              <div className="mt-3">
+                <CompleteItemButton item={item} />
+              </div>
             </li>
           ))}
         </ul>

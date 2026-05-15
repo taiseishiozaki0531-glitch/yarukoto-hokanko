@@ -2,6 +2,7 @@ import { ExternalLink, Eye, Pencil } from "lucide-react";
 import Link from "next/link";
 import { format } from "date-fns";
 
+import { CompleteItemButton } from "./CompleteItemButton";
 import { DeleteItemButton } from "./DeleteItemButton";
 import { TodayToggleButton } from "./TodayToggleButton";
 import {
@@ -148,6 +149,7 @@ export function ItemCard({ item }: ItemCardProps) {
           <Pencil aria-hidden="true" size={16} />
           編集
         </Link>
+        <CompleteItemButton item={item} />
         <TodayToggleButton item={item} />
         <DeleteItemButton itemId={item.id} itemTitle={item.title} />
       </div>
