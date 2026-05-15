@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import "./globals.css";
 
+import { ThemeScript } from "@/components/ThemeScript";
+
 export const metadata: Metadata = {
   title: "やること保管庫",
   description: "後回し案件を保存し、次にやることまで整理するWebアプリ",
@@ -12,8 +14,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ja" className="h-full antialiased">
-      <body className="flex min-h-full flex-col">{children}</body>
+    <html className="h-full antialiased" lang="ja" suppressHydrationWarning>
+      <body className="flex min-h-full flex-col">
+        <ThemeScript />
+        {children}
+      </body>
     </html>
   );
 }

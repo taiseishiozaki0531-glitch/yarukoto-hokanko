@@ -20,7 +20,7 @@ create table if not exists public.items (
   created_at timestamp with time zone not null default now(),
   updated_at timestamp with time zone not null default now(),
   constraint items_category_check check (
-    category in ('読書', '動画', '教材', '人間関係', '買い物', 'その他')
+    category in ('読書', '動画', '勉強', '人間関係', '買い物', 'その他')
   ),
   constraint items_status_check check (
     status in ('未着手', '途中', '保留', '完了', 'やめた')

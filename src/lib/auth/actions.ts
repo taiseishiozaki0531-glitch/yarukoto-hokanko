@@ -11,6 +11,7 @@ function readAuthInput(formData: FormData) {
   return {
     email: String(formData.get("email") ?? "").trim(),
     password: String(formData.get("password") ?? ""),
+    passwordConfirmation: String(formData.get("passwordConfirmation") ?? ""),
   };
 }
 
@@ -70,11 +71,23 @@ export async function signup(
   _previousState: AuthFormState,
   formData: FormData,
 ): Promise<AuthFormState> {
-  const { email, password } = readAuthInput(formData);
+  const { email, password, passwordConfirmation } = readAuthInput(formData);
   const validationError = validateAuthInput(email, password);
 
   if (validationError) {
     return validationError;
+  }
+
+  if (!passwordConfirmation) {
+    return {
+      error: "確認用パスワードを入力してください。",
+    };
+  }
+
+  if (password !== passwordConfirmation) {
+    return {
+      error: "パスワードが一致していません。",
+    };
   }
 
   const origin = await getRequestOrigin();

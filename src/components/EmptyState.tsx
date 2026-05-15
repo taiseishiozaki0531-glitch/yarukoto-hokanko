@@ -2,6 +2,7 @@ import Link from "next/link";
 
 interface EmptyStateProps {
   title: string;
+  actionTone?: "neutral" | "primary";
   description?: string;
   actionHref?: string;
   actionLabel?: string;
@@ -10,12 +11,17 @@ interface EmptyStateProps {
 
 export function EmptyState({
   title,
+  actionTone = "neutral",
   description,
   actionHref,
   actionLabel,
   variant = "panel",
 }: EmptyStateProps) {
   const isSubtle = variant === "subtle";
+  const actionClassName =
+    actionTone === "primary"
+      ? "border border-emerald-300 bg-emerald-50 text-emerald-800 shadow-sm hover:border-emerald-400 hover:bg-emerald-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500"
+      : "border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-400";
 
   return (
     <div
@@ -36,7 +42,7 @@ export function EmptyState({
       ) : null}
       {actionHref && actionLabel ? (
         <Link
-          className="mt-5 inline-flex min-h-11 items-center justify-center rounded-md bg-slate-950 px-4 text-sm font-semibold text-white transition hover:bg-slate-800 sm:min-h-10"
+          className={`mt-5 inline-flex min-h-11 items-center justify-center rounded-md px-4 text-sm font-semibold transition sm:min-h-10 ${actionClassName}`}
           href={actionHref}
         >
           {actionLabel}

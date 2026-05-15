@@ -1,5 +1,7 @@
 import Link from "next/link";
 
+import { AddItemLink } from "@/components/AddItemLink";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { logout } from "@/lib/auth/actions";
 
 interface AppHeaderProps {
@@ -33,14 +35,10 @@ export function AppHeader({ userEmail }: AppHeaderProps) {
             className="inline-flex min-h-10 items-center justify-center rounded-md px-3 py-2 font-medium text-slate-700 hover:bg-slate-100"
             href="/items"
           >
-            アイテム
+            やること
           </Link>
-          <Link
-            className="inline-flex min-h-10 items-center justify-center rounded-md bg-slate-950 px-3 py-2 font-medium text-white hover:bg-slate-800"
-            href="/items/new"
-          >
-            追加
-          </Link>
+          <AddItemLink className="min-h-10 px-3 py-2" label="やることを追加" />
+          <ThemeToggle />
           <form action={logout}>
             <button
               className="inline-flex min-h-10 w-full items-center justify-center rounded-md border border-slate-300 px-3 py-2 font-medium text-slate-700 hover:bg-slate-100 sm:w-auto"

@@ -20,9 +20,9 @@ export default async function EditItemPage({ params }: EditItemPageProps) {
     <div className="space-y-6">
       <section className="flex min-w-0 flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0 space-y-2">
-          <p className="text-sm font-medium text-slate-500">アイテム編集</p>
+          <p className="text-sm font-medium text-slate-500">やること編集</p>
           <h1 className="text-2xl font-semibold text-slate-950">
-            アイテムを編集
+            やることを編集
           </h1>
         </div>
         <Link
@@ -42,8 +42,8 @@ export default async function EditItemPage({ params }: EditItemPageProps) {
         <EmptyState
           actionHref="/items"
           actionLabel="一覧へ戻る"
-          description="アイテムが削除されたか、アクセスできない可能性があります。"
-          title="編集できるアイテムが見つかりません"
+          description="やることが削除されたか、アクセスできない可能性があります。"
+          title="編集できるやることが見つかりません"
         />
       )}
     </div>

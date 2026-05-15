@@ -23,7 +23,7 @@ export function UpcomingDeadlineList({ items }: UpcomingDeadlineListProps) {
       {items.length === 0 ? (
         <div className="mt-5">
           <EmptyState
-            description="期限が近い未完了のアイテムがあると、ここに表示されます。"
+            description="期限が近い未完了のやることがあると、ここに表示されます。"
             title="今週中の期限はありません。"
             variant="subtle"
           />

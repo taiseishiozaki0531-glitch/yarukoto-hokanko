@@ -7,7 +7,7 @@ interface DashboardSummaryProps {
 
 const summaryItems = [
   {
-    label: "総アイテム",
+    label: "やること合計",
     valueKey: "totalCount",
   },
   {

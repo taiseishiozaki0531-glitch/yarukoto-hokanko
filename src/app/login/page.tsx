@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 
 import { AuthForm } from "@/components/AuthForm";
 import { ErrorMessage } from "@/components/ErrorMessage";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { getCurrentUser } from "@/lib/supabase/auth";
 
 interface LoginPageProps {
@@ -57,6 +58,9 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
               続きを見るにはログインしてください。
             </p>
           ) : null}
+        </div>
+        <div className="flex justify-center">
+          <ThemeToggle />
         </div>
         <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
           {loginMessage?.kind === "info" ? (

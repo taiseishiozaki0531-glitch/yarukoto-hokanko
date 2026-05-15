@@ -2,7 +2,7 @@
 
 ## Overview
 
-「やること保管庫」は、個人ユーザーが読書・動画・教材・人間関係・買い物などの後回し案件を共通のアイテムとして保存し、次にやること・期限・進捗・優先度を見返せるWebアプリである。本設計は、初期リリースのP0/P1機能を Next.js App Router、Supabase Auth、Supabase PostgreSQL、Supabase Row Level Security、Vercel で実現する。
+「やること保管庫」は、個人ユーザーが読書・動画・勉強・人間関係・買い物などの後回し案件を共通のアイテムとして保存し、次にやること・期限・進捗・優先度を見返せるWebアプリである。本設計は、初期リリースのP0/P1機能を Next.js App Router、Supabase Auth、Supabase PostgreSQL、Supabase Row Level Security、Vercel で実現する。
 
 ユーザーはメールアドレスとパスワードで認証し、自分の `user_id` に紐づくアイテムだけを登録・閲覧・編集・削除する。ダッシュボード、一覧、詳細、フォーム、フィルター、日付判定、進捗率計算は、初心者でも追いやすい小さなモジュールに分ける。
 
@@ -368,7 +368,7 @@ graph TB
 ### Shared Types
 
 ```typescript
-export type Category = "読書" | "動画" | "教材" | "人間関係" | "買い物" | "その他";
+export type Category = "読書" | "動画" | "勉強" | "人間関係" | "買い物" | "その他";
 export type Status = "未着手" | "途中" | "保留" | "完了" | "やめた";
 export type Priority = "高" | "中" | "低";
 
@@ -475,7 +475,7 @@ erDiagram
     }
 ```
 
-`Item` が集約ルートである。カテゴリ別の固有情報は初期リリースでは nullable カラムで扱う。読書・動画・教材の進捗は `total_amount`、`current_amount`、`amount_unit` で共通化する。
+`Item` が集約ルートである。カテゴリ別の固有情報は初期リリースでは nullable カラムで扱う。読書・動画・勉強の進捗は `total_amount`、`current_amount`、`amount_unit` で共通化する。
 
 ### Physical Data Model
 
@@ -501,7 +501,7 @@ create table public.items (
   is_today boolean not null default false,
   created_at timestamp with time zone not null default now(),
   updated_at timestamp with time zone not null default now(),
-  constraint items_category_check check (category in ('読書', '動画', '教材', '人間関係', '買い物', 'その他')),
+  constraint items_category_check check (category in ('読書', '動画', '勉強', '人間関係', '買い物', 'その他')),
   constraint items_status_check check (status in ('未着手', '途中', '保留', '完了', 'やめた')),
   constraint items_priority_check check (priority in ('高', '中', '低')),
   constraint items_amount_non_negative_check check (
@@ -632,7 +632,7 @@ function calculateProgressPercent(item: Pick<Item, "total_amount" | "current_amo
 定数から選択する。自由入力は受け付けない。
 
 ```typescript
-export const CATEGORIES = ["読書", "動画", "教材", "人間関係", "買い物", "その他"] as const;
+export const CATEGORIES = ["読書", "動画", "勉強", "人間関係", "買い物", "その他"] as const;
 export const STATUSES = ["未着手", "途中", "保留", "完了", "やめた"] as const;
 export const PRIORITIES = ["高", "中", "低"] as const;
 ```

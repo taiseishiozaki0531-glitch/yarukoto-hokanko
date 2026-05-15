@@ -4,12 +4,23 @@ import {
   isOverdueItem,
   isVisibleInTodayList,
 } from "./date-logic";
-import type { DashboardData, Item, ItemListFilter, Status } from "./types";
+import type {
+  DashboardData,
+  Item,
+  ItemListFilter,
+  Priority,
+  Status,
+} from "./types";
 import { requireUser } from "@/lib/supabase/auth";
 import { createClient } from "@/lib/supabase/server";
 
 const DASHBOARD_ITEM_LIMIT = 100;
 const ITEM_LIST_LIMIT = 100;
+const PRIORITY_ORDER: Record<Priority, number> = {
+  高: 0,
+  中: 1,
+  低: 2,
+};
 
 type DashboardQueryResult = {
   data: DashboardData;
@@ -69,6 +80,19 @@ function sortByDueDate(items: Item[]): Item[] {
     }
 
     return first.due_date.localeCompare(second.due_date);
+  });
+}
+
+function sortByPriority(items: Item[]): Item[] {
+  return [...items].sort((first, second) => {
+    const priorityDiff =
+      PRIORITY_ORDER[first.priority] - PRIORITY_ORDER[second.priority];
+
+    if (priorityDiff !== 0) {
+      return priorityDiff;
+    }
+
+    return second.created_at.localeCompare(first.created_at);
   });
 }
 
@@ -153,12 +177,12 @@ export async function listItems(
     return {
       items: [],
       error:
-        "アイテム一覧の取得に失敗しました。時間をおいて再読み込みしてください。",
+        "やること一覧の取得に失敗しました。時間をおいて再読み込みしてください。",
     };
   }
 
   return {
-    items: (data ?? []) as Item[],
+    items: sortByPriority((data ?? []) as Item[]),
   };
 }
 
@@ -166,7 +190,7 @@ export async function getItemById(id: string): Promise<ItemDetailQueryResult> {
   if (!isLikelyUuid(id)) {
     return {
       item: null,
-      error: "指定されたアイテムが見つかりません。",
+      error: "指定されたやることが見つかりません。",
     };
   }
 
@@ -184,14 +208,14 @@ export async function getItemById(id: string): Promise<ItemDetailQueryResult> {
     return {
       item: null,
       error:
-        "アイテム詳細の取得に失敗しました。時間をおいて再読み込みしてください。",
+        "やること詳細の取得に失敗しました。時間をおいて再読み込みしてください。",
     };
   }
 
   if (!data) {
     return {
       item: null,
-      error: "指定されたアイテムが見つかりません。",
+      error: "指定されたやることが見つかりません。",
     };
   }
 

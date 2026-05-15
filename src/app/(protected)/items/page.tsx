@@ -1,6 +1,4 @@
-import { Plus } from "lucide-react";
-import Link from "next/link";
-
+import { AddItemLink } from "@/components/AddItemLink";
 import { EmptyState } from "@/components/EmptyState";
 import { ErrorMessage } from "@/components/ErrorMessage";
 import { FilterBar } from "@/components/FilterBar";
@@ -67,18 +65,12 @@ export default async function ItemsPage({ searchParams }: ItemsPageProps) {
     <div className="space-y-6">
       <section className="flex min-w-0 flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0 space-y-2">
-          <p className="text-sm font-medium text-slate-500">アイテム</p>
+          <p className="text-sm font-medium text-slate-500">やること</p>
           <h1 className="text-2xl font-semibold text-slate-950">
-            登録済みアイテム
+            登録済みのやること
           </h1>
         </div>
-        <Link
-          className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-md bg-slate-950 px-4 text-sm font-semibold text-white transition hover:bg-slate-800 sm:min-h-10 sm:w-auto"
-          href="/items/new"
-        >
-          <Plus aria-hidden="true" size={18} />
-          アイテム追加
-        </Link>
+        <AddItemLink className="w-full sm:w-auto" />
       </section>
 
       {error ? <ErrorMessage message={error} /> : null}
@@ -88,16 +80,19 @@ export default async function ItemsPage({ searchParams }: ItemsPageProps) {
       {!error && items.length === 0 ? (
         <EmptyState
           actionHref={isFiltered ? "/items" : "/items/new"}
-          actionLabel={isFiltered ? "フィルターを解除" : "アイテムを追加"}
+          actionLabel={
+            isFiltered ? "フィルターを解除" : "新しいやることを追加"
+          }
+          actionTone={isFiltered ? "neutral" : "primary"}
           description={
             isFiltered
               ? "カテゴリ、ステータス、優先度の条件を変えて確認できます。"
-              : "読書、動画、教材、人間関係、買い物などを登録できます。"
+              : "読書、動画、勉強、人間関係、買い物などを登録できます。"
           }
           title={
             isFiltered
-              ? "条件に一致するアイテムはありません"
-              : "まずはアイテムを登録しましょう"
+              ? "条件に一致するやることはありません"
+              : "まずはやることを登録しましょう"
           }
         />
       ) : null}

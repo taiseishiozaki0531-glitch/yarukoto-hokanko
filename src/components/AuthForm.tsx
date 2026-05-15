@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 
 import { login, signup } from "@/lib/auth/actions";
 import type { AuthFormState } from "@/lib/auth/types";
@@ -20,6 +20,20 @@ export function AuthForm({ mode }: AuthFormProps) {
   const isLogin = mode === "login";
   const action = isLogin ? login : signup;
   const [state, formAction, isPending] = useActionState(action, INITIAL_STATE);
+  const [password, setPassword] = useState("");
+  const [passwordConfirmation, setPasswordConfirmation] = useState("");
+
+  const shouldValidatePasswordConfirmation =
+    !isLogin && passwordConfirmation.length > 0;
+  const passwordsMatch =
+    isLogin ||
+    (password.length > 0 &&
+      passwordConfirmation.length > 0 &&
+      password === passwordConfirmation);
+  const passwordConfirmationError =
+    shouldValidatePasswordConfirmation && password !== passwordConfirmation
+      ? "パスワードが一致していません。"
+      : null;
 
   return (
     <form action={formAction} className="space-y-5">
@@ -49,14 +63,47 @@ export function AuthForm({ mode }: AuthFormProps) {
           name="password"
           type="password"
           autoComplete={isLogin ? "current-password" : "new-password"}
+          onChange={(event) => setPassword(event.target.value)}
           required
         />
       </div>
 
+      {!isLogin ? (
+        <div className="space-y-2">
+          <label
+            className="text-sm font-medium text-slate-700"
+            htmlFor="passwordConfirmation"
+          >
+            パスワード（確認用）
+          </label>
+          <input
+            aria-describedby={
+              passwordConfirmationError ? "password-confirmation-error" : undefined
+            }
+            aria-invalid={passwordConfirmationError ? "true" : "false"}
+            className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-base text-slate-950 outline-none transition focus:border-slate-500 focus:ring-2 focus:ring-slate-200"
+            id="passwordConfirmation"
+            name="passwordConfirmation"
+            type="password"
+            autoComplete="new-password"
+            onChange={(event) => setPasswordConfirmation(event.target.value)}
+            required
+          />
+          {passwordConfirmationError ? (
+            <p
+              className="text-sm font-medium text-rose-700"
+              id="password-confirmation-error"
+            >
+              {passwordConfirmationError}
+            </p>
+          ) : null}
+        </div>
+      ) : null}
+
       <button
         className="flex w-full items-center justify-center rounded-md bg-slate-950 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-400"
         type="submit"
-        disabled={isPending}
+        disabled={isPending || !passwordsMatch}
       >
         {isPending ? "送信中" : isLogin ? "ログイン" : "新規登録"}
       </button>

@@ -72,7 +72,7 @@ export async function updateItem(
   if (!isLikelyUuid(id)) {
     return {
       ok: false,
-      error: "更新対象のアイテムが見つかりません。",
+      error: "更新対象のやることが見つかりません。",
     };
   }
 
@@ -115,7 +115,7 @@ export async function updateItem(
   if (!data) {
     return {
       ok: false,
-      error: "更新対象のアイテムが見つかりません。",
+      error: "更新対象のやることが見つかりません。",
     };
   }
 
@@ -197,7 +197,8 @@ export async function setTodayStatus(
   if (nextIsToday && isInactiveTodayStatus(currentItem.status)) {
     return {
       ok: false,
-      error: "完了またはやめたアイテムは今日やるリストに追加できません。",
+      error:
+        "完了またはやめた状態のやることは今日やるリストに追加できません。",
     };
   }
 

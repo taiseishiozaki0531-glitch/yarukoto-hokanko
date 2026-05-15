@@ -20,9 +20,9 @@ export default async function ItemDetailPage({ params }: ItemDetailPageProps) {
     <div className="space-y-6">
       <section className="flex min-w-0 flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0 space-y-2">
-          <p className="text-sm font-medium text-slate-500">アイテム詳細</p>
+          <p className="text-sm font-medium text-slate-500">やること詳細</p>
           <h1 className="text-2xl font-semibold text-slate-950">
-            アイテムの内容
+            やることの内容
           </h1>
         </div>
         <div className="grid grid-cols-1 gap-2 sm:flex sm:flex-wrap sm:justify-end">
@@ -53,8 +53,8 @@ export default async function ItemDetailPage({ params }: ItemDetailPageProps) {
         <EmptyState
           actionHref="/items"
           actionLabel="一覧へ戻る"
-          description="アイテムが削除されたか、アクセスできない可能性があります。"
-          title="アイテムを表示できません"
+          description="やることが削除されたか、アクセスできない可能性があります。"
+          title="やることを表示できません"
         />
       )}
     </div>

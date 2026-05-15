@@ -37,10 +37,22 @@ function getDeadlineState(item: Item): "overdue" | "upcoming" | null {
   return null;
 }
 
+function getPriorityBadgeClass(priority: Item["priority"]): string {
+  switch (priority) {
+    case "高":
+      return "border-rose-200 bg-rose-50 text-rose-700";
+    case "中":
+      return "border-amber-200 bg-amber-50 text-amber-700";
+    case "低":
+      return "border-emerald-200 bg-emerald-50 text-emerald-700";
+  }
+}
+
 export function ItemCard({ item }: ItemCardProps) {
   const progressText = formatProgressText(item);
   const deadlineState = getDeadlineState(item);
   const isOverdue = deadlineState === "overdue";
+  const priorityBadgeClass = getPriorityBadgeClass(item.priority);
 
   return (
     <article
@@ -62,7 +74,9 @@ export function ItemCard({ item }: ItemCardProps) {
             <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-700">
               {item.status}
             </span>
-            <span className="rounded-full bg-slate-950 px-2.5 py-1 text-xs font-medium text-white">
+            <span
+              className={`rounded-full border px-2.5 py-1 text-xs font-semibold ${priorityBadgeClass}`}
+            >
               優先度 {item.priority}
             </span>
           </div>

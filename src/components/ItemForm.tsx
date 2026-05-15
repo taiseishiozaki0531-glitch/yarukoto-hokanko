@@ -276,13 +276,13 @@ function CategoryFields({
     );
   }
 
-  if (category === "教材") {
+  if (category === "勉強") {
     return (
       <div className="space-y-4">
         <UrlField
           defaultValue={item?.url}
           fieldErrors={fieldErrors}
-          label="教材URL"
+          label="学習URL"
         />
         <ProgressFields
           currentAmount={item?.current_amount}
