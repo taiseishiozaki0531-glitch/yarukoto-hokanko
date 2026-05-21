@@ -85,6 +85,13 @@ function sortByDueDate(items: Item[]): Item[] {
 
 function sortByPriority(items: Item[]): Item[] {
   return [...items].sort((first, second) => {
+    const completionDiff =
+      Number(first.status === "完了") - Number(second.status === "完了");
+
+    if (completionDiff !== 0) {
+      return completionDiff;
+    }
+
     const priorityDiff =
       PRIORITY_ORDER[first.priority] - PRIORITY_ORDER[second.priority];
 

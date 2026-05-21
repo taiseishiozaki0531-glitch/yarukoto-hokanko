@@ -52,17 +52,23 @@ function getPriorityBadgeClass(priority: Item["priority"]): string {
 export function ItemCard({ item }: ItemCardProps) {
   const progressText = formatProgressText(item);
   const deadlineState = getDeadlineState(item);
+  const isCompleted = item.status === "完了";
   const isOverdue = deadlineState === "overdue";
   const priorityBadgeClass = getPriorityBadgeClass(item.priority);
+  const cardStateClass = isCompleted
+    ? "border-slate-200 bg-slate-100/70 shadow-none dark:border-slate-800 dark:bg-slate-900/35"
+    : isOverdue
+      ? "border-rose-200 bg-rose-50/60"
+      : "border-slate-200 bg-white";
+  const statusBadgeClass = isCompleted
+    ? "bg-slate-200 text-slate-600 dark:bg-slate-800/70 dark:text-slate-400"
+    : "bg-slate-100 text-slate-700";
+  const infoPanelClass = isCompleted
+    ? "bg-slate-200/40 dark:bg-slate-800/25"
+    : "bg-slate-50";
 
   return (
-    <article
-      className={`min-w-0 rounded-lg border p-4 shadow-sm ${
-        isOverdue
-          ? "border-rose-200 bg-rose-50/60"
-          : "border-slate-200 bg-white"
-      }`}
-    >
+    <article className={`min-w-0 rounded-lg border p-4 shadow-sm ${cardStateClass}`}>
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0 space-y-2">
           <h2 className="break-words text-lg font-semibold text-slate-950">
@@ -72,7 +78,9 @@ export function ItemCard({ item }: ItemCardProps) {
             <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-700">
               {item.category}
             </span>
-            <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-700">
+            <span
+              className={`rounded-full px-2.5 py-1 text-xs font-semibold ${statusBadgeClass}`}
+            >
               {item.status}
             </span>
             <span
@@ -105,7 +113,7 @@ export function ItemCard({ item }: ItemCardProps) {
         </div>
 
         <div className={`grid gap-3 ${progressText ? "sm:grid-cols-2" : ""}`}>
-          <div className="rounded-md bg-slate-50 px-3 py-3">
+          <div className={`rounded-md px-3 py-3 ${infoPanelClass}`}>
             <p className="text-xs font-medium text-slate-500">期限</p>
             <div className="mt-1 flex flex-wrap items-center gap-2">
               <p className="text-sm font-semibold text-slate-800">
@@ -124,7 +132,7 @@ export function ItemCard({ item }: ItemCardProps) {
             </div>
           </div>
           {progressText ? (
-            <div className="rounded-md bg-slate-50 px-3 py-3">
+            <div className={`rounded-md px-3 py-3 ${infoPanelClass}`}>
               <p className="text-xs font-medium text-slate-500">進捗率</p>
               <p className="mt-1 text-sm font-semibold text-slate-800">
                 {progressText}
