@@ -23,6 +23,10 @@
 - `anon` ロールからの `items` テーブル権限取り消し
 - SELECT / INSERT / UPDATE / DELETE の操作別RLS policy
 
+## 追加SQL
+
+- [add_completion_restore_columns.sql](./add_completion_restore_columns.sql): 完了取り消し時に、完了前のステータスと今日やる状態を復元するためのカラムを追加するSQL。既存DBへ適用する場合も、上記と同じくユーザー承認後にだけ実行する。
+
 ## 承認後の適用手順
 
 1. [items_setup.sql](./items_setup.sql) の全文をユーザーに提示する。

@@ -3,10 +3,18 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
+import { RESTORABLE_STATUSES } from "./constants";
 import type { ActionResult } from "./types";
 import { validateItemCreateInput } from "./validation";
 import { requireUser } from "@/lib/supabase/auth";
 import { createClient } from "@/lib/supabase/server";
+
+type RestorableStatus = (typeof RESTORABLE_STATUSES)[number];
+
+interface CompletionSnapshot {
+  previousStatus: RestorableStatus;
+  previousIsToday: boolean;
+}
 
 function isLikelyUuid(value: string): boolean {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
@@ -28,6 +36,38 @@ function readBooleanFormValue(value: FormDataEntryValue | null): boolean | null 
 
 function isInactiveTodayStatus(status: string): boolean {
   return status === "完了" || status === "やめた";
+}
+
+function isRestorableStatus(
+  value: string | null | undefined,
+): value is RestorableStatus {
+  return RESTORABLE_STATUSES.includes(value as RestorableStatus);
+}
+
+function readRestorableStatus(
+  value: FormDataEntryValue | string | null,
+): RestorableStatus | null {
+  if (typeof value !== "string") {
+    return null;
+  }
+
+  return isRestorableStatus(value) ? value : null;
+}
+
+function isCompletionHistoryColumnError(
+  error: { code?: string; message?: string } | null,
+): boolean {
+  if (!error) {
+    return false;
+  }
+
+  const message = error.message ?? "";
+
+  return (
+    error.code === "PGRST204" ||
+    message.includes("completed_from_status") ||
+    message.includes("completed_from_is_today")
+  );
 }
 
 export async function createItem(
@@ -165,9 +205,9 @@ export async function deleteItem(
 }
 
 export async function completeItem(
-  _previousState: ActionResult,
+  _previousState: ActionResult<CompletionSnapshot>,
   formData: FormData,
-): Promise<ActionResult> {
+): Promise<ActionResult<CompletionSnapshot>> {
   const id = String(formData.get("id") ?? "");
 
   if (!isLikelyUuid(id)) {
@@ -181,7 +221,7 @@ export async function completeItem(
   const supabase = await createClient();
   const { data: currentItem, error: currentItemError } = await supabase
     .from("items")
-    .select("id,status")
+    .select("id,status,is_today")
     .eq("id", id)
     .eq("user_id", user.id)
     .maybeSingle();
@@ -193,29 +233,187 @@ export async function completeItem(
     };
   }
 
-  if (isInactiveTodayStatus(currentItem.status)) {
+  if (!isRestorableStatus(currentItem.status)) {
     return {
       ok: false,
       error: "完了またはやめた状態のやることは変更できません。",
     };
   }
 
-  const { data, error } = await supabase
+  const updatedAt = new Date().toISOString();
+  const completionSnapshot = {
+    previousStatus: currentItem.status,
+    previousIsToday: Boolean(currentItem.is_today),
+  };
+  const updateWithHistory = {
+    status: "完了",
+    is_today: false,
+    completed_from_status: completionSnapshot.previousStatus,
+    completed_from_is_today: completionSnapshot.previousIsToday,
+    updated_at: updatedAt,
+  };
+  const updateWithoutHistory = {
+    status: "完了",
+    is_today: false,
+    updated_at: updatedAt,
+  };
+
+  let updateResult = await supabase
     .from("items")
-    .update({
-      status: "完了",
-      is_today: false,
-      updated_at: new Date().toISOString(),
-    })
+    .update(updateWithHistory)
     .eq("id", id)
     .eq("user_id", user.id)
     .select("id")
     .maybeSingle();
 
+  if (isCompletionHistoryColumnError(updateResult.error)) {
+    updateResult = await supabase
+      .from("items")
+      .update(updateWithoutHistory)
+      .eq("id", id)
+      .eq("user_id", user.id)
+      .select("id")
+      .maybeSingle();
+  }
+
+  const { data, error } = updateResult;
+
   if (error || !data) {
     return {
       ok: false,
       error: "完了への更新に失敗しました。時間をおいて再試行してください。",
+    };
+  }
+
+  revalidatePath("/items");
+  revalidatePath(`/items/${id}`);
+  revalidatePath("/dashboard");
+
+  return {
+    ok: true,
+    data: completionSnapshot,
+  };
+}
+
+export async function restoreCompletedItem(
+  _previousState: ActionResult,
+  formData: FormData,
+): Promise<ActionResult> {
+  const id = String(formData.get("id") ?? "");
+  const formRestoreStatus = readRestorableStatus(formData.get("restore_status"));
+  const formRestoreIsToday = readBooleanFormValue(
+    formData.get("restore_is_today"),
+  );
+
+  if (!isLikelyUuid(id)) {
+    return {
+      ok: false,
+      error: "戻せるやることが見つかりません。",
+    };
+  }
+
+  const user = await requireUser();
+  const supabase = await createClient();
+  let historyColumnsAvailable = true;
+  let currentItem: {
+    id: string;
+    status: string;
+    completed_from_status?: string | null;
+    completed_from_is_today?: boolean | null;
+  } | null = null;
+
+  const currentWithHistory = await supabase
+    .from("items")
+    .select("id,status,completed_from_status,completed_from_is_today")
+    .eq("id", id)
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  if (isCompletionHistoryColumnError(currentWithHistory.error)) {
+    historyColumnsAvailable = false;
+    const currentWithoutHistory = await supabase
+      .from("items")
+      .select("id,status")
+      .eq("id", id)
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    if (currentWithoutHistory.error || !currentWithoutHistory.data) {
+      return {
+        ok: false,
+        error: "戻せるやることが見つかりません。",
+      };
+    }
+
+    currentItem = currentWithoutHistory.data;
+  } else {
+    if (currentWithHistory.error || !currentWithHistory.data) {
+      return {
+        ok: false,
+        error: "戻せるやることが見つかりません。",
+      };
+    }
+
+    currentItem = currentWithHistory.data;
+  }
+
+  if (currentItem.status !== "完了") {
+    return {
+      ok: false,
+      error: "完了済みのやることだけ元に戻せます。",
+    };
+  }
+
+  const restoreStatus =
+    readRestorableStatus(currentItem.completed_from_status ?? null) ??
+    formRestoreStatus ??
+    "未着手";
+  const restoreIsToday =
+    typeof currentItem.completed_from_is_today === "boolean"
+      ? currentItem.completed_from_is_today
+      : formRestoreIsToday ?? false;
+  const updatedAt = new Date().toISOString();
+  const updateWithHistoryReset = {
+    status: restoreStatus,
+    is_today: restoreIsToday,
+    completed_from_status: null,
+    completed_from_is_today: null,
+    updated_at: updatedAt,
+  };
+  const updateWithoutHistoryReset = {
+    status: restoreStatus,
+    is_today: restoreIsToday,
+    updated_at: updatedAt,
+  };
+
+  let updateResult = await supabase
+    .from("items")
+    .update(
+      historyColumnsAvailable
+        ? updateWithHistoryReset
+        : updateWithoutHistoryReset,
+    )
+    .eq("id", id)
+    .eq("user_id", user.id)
+    .select("id")
+    .maybeSingle();
+
+  if (isCompletionHistoryColumnError(updateResult.error)) {
+    updateResult = await supabase
+      .from("items")
+      .update(updateWithoutHistoryReset)
+      .eq("id", id)
+      .eq("user_id", user.id)
+      .select("id")
+      .maybeSingle();
+  }
+
+  const { data, error } = updateResult;
+
+  if (error || !data) {
+    return {
+      ok: false,
+      error: "元の状態への更新に失敗しました。時間をおいて再試行してください。",
     };
   }
 

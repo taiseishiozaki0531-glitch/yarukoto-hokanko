@@ -21,13 +21,21 @@ export interface Item {
   person_name: string | null;
   contact_method: string | null;
   is_today: boolean;
+  completed_from_status?: Status | null;
+  completed_from_is_today?: boolean | null;
   created_at: string;
   updated_at: string;
 }
 
 export type ItemCreateInput = Omit<
   Item,
-  "id" | "user_id" | "created_at" | "updated_at" | "is_today"
+  | "id"
+  | "user_id"
+  | "created_at"
+  | "updated_at"
+  | "is_today"
+  | "completed_from_status"
+  | "completed_from_is_today"
 > & {
   is_today?: boolean;
 };

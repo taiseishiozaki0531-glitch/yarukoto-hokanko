@@ -17,6 +17,8 @@ create table if not exists public.items (
   person_name text null,
   contact_method text null,
   is_today boolean not null default false,
+  completed_from_status text null,
+  completed_from_is_today boolean null,
   created_at timestamp with time zone not null default now(),
   updated_at timestamp with time zone not null default now(),
   constraint items_category_check check (
@@ -27,6 +29,10 @@ create table if not exists public.items (
   ),
   constraint items_priority_check check (
     priority in ('高', '中', '低')
+  ),
+  constraint items_completed_from_status_check check (
+    completed_from_status is null
+    or completed_from_status in ('未着手', '途中', '保留')
   ),
   constraint items_amount_non_negative_check check (
     (total_amount is null or total_amount >= 0)
