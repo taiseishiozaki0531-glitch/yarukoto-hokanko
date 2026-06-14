@@ -31,6 +31,15 @@ NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=
 ```
 
+新規登録前の仮体験ログインを使う場合は、Supabase Authで仮アカウントを作成し、同じ `.env.local` に次も設定します。
+
+```bash
+DEMO_ACCOUNT_EMAIL=
+DEMO_ACCOUNT_PASSWORD=
+```
+
+`DEMO_ACCOUNT_EMAIL` と `DEMO_ACCOUNT_PASSWORD` はブラウザに公開しないサーバー専用の環境変数です。仮アカウントには公開されてもよいサンプルデータだけを入れてください。
+
 開発サーバーを起動します。
 
 ```bash
@@ -105,6 +114,8 @@ Vercelには次の環境変数を設定します。
 ```bash
 NEXT_PUBLIC_SUPABASE_URL
 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
+DEMO_ACCOUNT_EMAIL
+DEMO_ACCOUNT_PASSWORD
 ```
 
 Production、Preview、Developmentの各環境で、接続先のSupabaseプロジェクトが意図したものになっているか確認してください。

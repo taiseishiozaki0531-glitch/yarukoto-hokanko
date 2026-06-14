@@ -7,6 +7,17 @@ import { redirect } from "next/navigation";
 import type { AuthFormState } from "@/lib/auth/types";
 import { createClient } from "@/lib/supabase/server";
 
+type DemoAccountConfig =
+  | {
+      ok: true;
+      email: string;
+      password: string;
+    }
+  | {
+      ok: false;
+      error: string;
+    };
+
 function readAuthInput(formData: FormData) {
   return {
     email: String(formData.get("email") ?? "").trim(),
@@ -23,6 +34,21 @@ function validateAuthInput(email: string, password: string): AuthFormState | nul
   }
 
   return null;
+}
+
+function readDemoAccountConfig(): DemoAccountConfig {
+  const email = process.env.DEMO_ACCOUNT_EMAIL?.trim();
+  const password = process.env.DEMO_ACCOUNT_PASSWORD;
+
+  if (!email || !password) {
+    return {
+      ok: false,
+      error:
+        "仮体験用アカウントは現在準備中です。通常のログインまたは新規登録をご利用ください。",
+    };
+  }
+
+  return { ok: true, email, password };
 }
 
 async function getRequestOrigin(): Promise<string> {
@@ -60,6 +86,36 @@ export async function login(
     return {
       error:
         "ログインできませんでした。メールアドレスとパスワードを確認してください。",
+    };
+  }
+
+  revalidatePath("/", "layout");
+  redirect("/dashboard");
+}
+
+export async function loginWithDemoAccount(
+  _previousState: AuthFormState,
+  _formData: FormData,
+): Promise<AuthFormState> {
+  void _previousState;
+  void _formData;
+
+  const demoAccount = readDemoAccountConfig();
+
+  if (!demoAccount.ok) {
+    return { error: demoAccount.error };
+  }
+
+  const supabase = await createClient();
+  const { error } = await supabase.auth.signInWithPassword({
+    email: demoAccount.email,
+    password: demoAccount.password,
+  });
+
+  if (error) {
+    return {
+      error:
+        "仮体験用アカウントでログインできませんでした。時間をおいてもう一度お試しください。",
     };
   }
 

@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 
 import { AuthForm } from "@/components/AuthForm";
+import { DemoLoginForm } from "@/components/DemoLoginForm";
 import { ErrorMessage } from "@/components/ErrorMessage";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { getCurrentUser } from "@/lib/supabase/auth";
@@ -46,6 +47,9 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
 
   const { message, redirectedFrom } = await searchParams;
   const loginMessage = getLoginMessage(message);
+  const isDemoAccountConfigured = Boolean(
+    process.env.DEMO_ACCOUNT_EMAIL && process.env.DEMO_ACCOUNT_PASSWORD,
+  );
 
   return (
     <main className="flex min-h-screen items-center justify-center px-4 py-10">
@@ -74,6 +78,9 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
             </div>
           ) : null}
           <AuthForm mode="login" />
+        </div>
+        <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+          <DemoLoginForm isConfigured={isDemoAccountConfigured} />
         </div>
       </section>
     </main>
